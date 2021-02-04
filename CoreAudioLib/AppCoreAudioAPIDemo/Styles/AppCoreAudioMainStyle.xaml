@@ -1,0 +1,23 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:AppCoreAudioAPIDemo.Styles">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/AppCoreAudioAPIDemo;component/Styles/CommonStyle.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+    
+
+    <DataTemplate x:Key="AudioSliderBarTemplate">
+        <DockPanel Margin="10, 0, 10, 0">
+            <Image DockPanel.Dock="Top" Source="{Binding ImageSource}" Height="50"/>
+            <ToggleButton DockPanel.Dock="Bottom" Height="50">
+                <Image Source="{Binding ButtonContent}"/>
+            </ToggleButton>
+            <Slider Orientation="Vertical" HorizontalAlignment="Center" DataContext="{Binding AudioSlider}" Style="{StaticResource CustomAudioSlider}"/>
+        </DockPanel>
+    </DataTemplate>
+    
+    <ItemsPanelTemplate x:Key="AudioSliderPanel">
+        <StackPanel Orientation="Horizontal"/>
+    </ItemsPanelTemplate>
+</ResourceDictionary>
