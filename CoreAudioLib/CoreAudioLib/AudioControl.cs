@@ -100,7 +100,7 @@ namespace CoreAudioLib
              * like _audioEndpointVolume.QueryHardwareSupport(out uint mask);
              */
             InitializeAudioClient();
-            return;
+            
             //Get Session manager
             result = _audioDevice.Activate(typeof(IAudioSessionManager2).GUID, ClsCtx.ALL, IntPtr.Zero, out obj);
             _audioSessionManager2 = (IAudioSessionManager2)obj;
@@ -211,11 +211,6 @@ namespace CoreAudioLib
                 {
                     ctl.Key.UnregisterAudioSessionNotification(ctl.Value.AudioSessionEventClass);
                     Marshal.ReleaseComObject(ctl.Key);
-                    //foreach(var session in ctl.Value)
-                    //{
-                    //    session.Key.UnregisterAudioSessionNotification(session.Value);
-                    //    Marshal.ReleaseComObject(session.Key);
-                    //}
                 }
             }
 

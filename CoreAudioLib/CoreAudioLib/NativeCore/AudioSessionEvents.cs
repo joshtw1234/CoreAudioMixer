@@ -14,6 +14,20 @@ namespace CoreAudioLib.NativeCore
         public uint ProcessID { get; set; }
         public string DisplayName { get; set; }
 
+        CallBacks.AudioSessionVolumeChangeCallBack _volumeCallBack;
+
+        public void RegisterSessionVolumeCallBack(CallBacks.AudioSessionVolumeChangeCallBack callBack)
+        {
+            _volumeCallBack += callBack;
+        }
+
+        public void UnRegisterSessionVolumeCallBack(CallBacks.AudioSessionVolumeChangeCallBack callBack)
+        {
+            if (null == _volumeCallBack) return;
+
+            _volumeCallBack -= callBack;
+        }
+
         public COMResult OnChannelVolumeChanged([In, MarshalAs(UnmanagedType.U4)] uint channelCount, [In, MarshalAs(UnmanagedType.SysInt)] IntPtr newVolumes, [In, MarshalAs(UnmanagedType.U4)] uint channelIndex, [In] ref Guid eventContext)
         {
             return COMResult.S_OK;

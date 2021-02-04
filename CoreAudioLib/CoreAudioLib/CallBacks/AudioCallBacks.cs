@@ -39,4 +39,6 @@ namespace CoreAudioLib.CallBacks
     /// </summary>
     /// <param name="audioDeviceData"></param>
     public delegate void AudioDeviceStateChangeCallBack(Structures.AudioDeviceChangeData audioDeviceData);
+
+    public delegate void AudioSessionVolumeChangeCallBack(float volume, bool isMute);
 }
