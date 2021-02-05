@@ -18,7 +18,6 @@ using CoreAudioLib.Enums;
 using CoreAudioLib.NativeCore;
 using CoreAudioLib.Structures;
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,28 +27,12 @@ namespace CoreAudioLib
     /// <summary>
     /// The AudioControl
     /// </summary>
-    class AudioControl
+    class AudioControl : BaseAudioControl
     {
         // REFERENCE_TIME time units per second and per millisecond
         private const int REFTIMES_PER_SEC = 10000000;
         private const int REFTIMES_PER_MILLISEC = 10000;
         private bool isAudioPeekMonitoring = false;
-
-        #region Core API structures
-        /// <summary>
-        /// MSFT Core API structures
-        /// </summary>
-        IMMDevice _audioDevice;
-        IAudioClient _audioClient;
-        IAudioMeterInformation _audioMeter;
-        AudioDataFlow _audioDataFlow;
-        IAudioEndpointVolume _audioEndpointVolume;
-        IAudioSessionControl _audioSessionControl;
-        IAudioSessionManager2 _audioSessionManager2;
-        Dictionary<IAudioSessionControl, JoshAudioSessionStruct> _audioSessionEventDict;
-        ClassAudioEndPointVolumeCallBack classCallBack;
-        WAVEFORMATEXTENSION waveFormat;
-        #endregion
 
         uint _channelCount = 0;
 
@@ -58,6 +41,11 @@ namespace CoreAudioLib
         /// </summary>
         Guid _sessionGuid;
 
+        protected IAudioClient _audioClient;
+        protected IAudioMeterInformation _audioMeter;
+        protected IAudioEndpointVolume _audioEndpointVolume;
+        protected ClassAudioEndPointVolumeCallBack classCallBack;
+        protected WAVEFORMATEXTENSION waveFormat;
         /// <summary>
         /// The Audio Call Back
         /// </summary>
@@ -68,22 +56,19 @@ namespace CoreAudioLib
         /// </summary>
         AudioPulseCallBack _audiopulseCallBack;
 
-        /// <summary>
-        /// The Constructor
-        /// </summary>
-        /// <param name="audioFlow"></param>
-        public AudioControl(IMMDevice audioDevice, AudioDataFlow audioFlow)
+        public AudioControl(IMMDevice audioDevice, AudioDataFlow audioFlow) : base(audioDevice, audioFlow)
         {
-            _audioDataFlow = audioFlow;
-            _audioDevice = audioDevice;
             //Initialize Call Back
             classCallBack = new ClassAudioEndPointVolumeCallBack();
-            InitializeAudioClasses();
+            InitializeAudioClient();
         }
+
         /// <summary>
-        /// Initialize Audio Classes
+        /// The Initialize Audio Client
         /// </summary>
-        private void InitializeAudioClasses()
+        /// <param name="audioFlow"></param>
+        /// <param name="_deviceEnumerator"></param>
+        private void InitializeAudioClient()
         {
             //Get Audio Client from device
             COMResult result = _audioDevice.Activate(typeof(IAudioClient).GUID, 0, IntPtr.Zero, out object obj);
@@ -95,70 +80,9 @@ namespace CoreAudioLib
             result = _audioDevice.Activate(typeof(IAudioEndpointVolume).GUID, 0, IntPtr.Zero, out obj);
             _audioEndpointVolume = (IAudioEndpointVolume)obj;
             _audioEndpointVolume.RegisterControlChangeNotify(classCallBack);
-            /*
-             * TODO:Add end point check logic here for make sure the audio device setting is correct.
-             * like _audioEndpointVolume.QueryHardwareSupport(out uint mask);
-             */
-            InitializeAudioClient();
-
-            if (_audioDataFlow == AudioDataFlow.eCapture) return;
-            
-            //Get Session manager
-            result = _audioDevice.Activate(typeof(IAudioSessionManager2).GUID, ClsCtx.ALL, IntPtr.Zero, out obj);
-            _audioSessionManager2 = (IAudioSessionManager2)obj;
-
-            _audioSessionEventDict = new Dictionary<IAudioSessionControl, JoshAudioSessionStruct>();
-            //Get all session process IDs
-            //refer https://gist.github.com/sverrirs/d099b34b7f72bb4fb386
-            // enumerate sessions for on this device
-            _audioSessionManager2.GetSessionEnumerator(out IAudioSessionEnumerator sessionEnumerator);
-            int count;
-            sessionEnumerator.GetCount(out count);
-            
-            // search for an audio session with the required process-id
-            JoshAudioSessionStruct audioStruc;
-            AudioSessionEvents ssEvent = null;
-            for (int i = 0; i < count; ++i)
-            {
-                IAudioSessionControl ctl = null;
-                IAudioSessionControl2 ctl2 = null;
-
-                var revv = sessionEnumerator.GetSession(i, out ctl);
-                ssEvent = new AudioSessionEvents();
-                audioStruc = new JoshAudioSessionStruct();
-                revv = ctl.RegisterAudioSessionNotification(ssEvent);
-                ctl2 = ctl as IAudioSessionControl2;
-                // NOTE: we could also use the app name from ctl.GetDisplayName()
-                revv = ctl2.GetProcessId(out uint cpid);
-                ssEvent.ProcessID = cpid;
-
-                var pos = System.Diagnostics.Process.GetProcessById((int)cpid);
-                ssEvent.DisplayName = pos.ProcessName;
-
-                audioStruc.AudioSessionEventClass = ssEvent;
-                audioStruc.SimpleAudioControl = ctl2 as ISimpleAudioVolume;
-                //revv = ctl2.GetDisplayName(out string names);
-                //Keep session in memory for opreation it later
-                _audioSessionEventDict.Add(ctl, audioStruc);
-
-            }
-            //Register event for get session creation
-            _audioSessionManager2.RegisterSessionNotification(new AudioSessionNotification());
-
-        }
-
-
-
-        /// <summary>
-        /// The Initialize Audio Client
-        /// </summary>
-        /// <param name="audioFlow"></param>
-        /// <param name="_deviceEnumerator"></param>
-        private void InitializeAudioClient()
-        {
             //Initialize Audio Client.
             _sessionGuid = new Guid();
-            var result = _audioClient.GetMixFormat(out waveFormat);
+            result = _audioClient.GetMixFormat(out waveFormat);
             AudioClientStreamFlags streamFlag = AudioClientStreamFlags.None;
             if (_audioDataFlow == AudioDataFlow.eRender) streamFlag = AudioClientStreamFlags.Loopback;
             result = _audioClient.Initialize(AudioClientMode.Shared, streamFlag, 10000000, 0, waveFormat, ref _sessionGuid);
@@ -167,60 +91,6 @@ namespace CoreAudioLib
             SetupWaveFormat(waveFormat);
             
             result = _audioEndpointVolume.GetChannelCount(out _channelCount);
-            //_audioClient.GetService(typeof(IAudioSessionControl).GUID, out object sessionObj);
-            //_audioSessionControl = (IAudioSessionControl)sessionObj;
-            //var rev = _audioSessionControl.GetDisplayName(out string displayName);
-            //rev = _audioSessionControl.RegisterAudioSessionNotification(new AudioSessionEvents());
-        }
-
-
-        /// <summary>
-        /// The UnInitialize Audio
-        /// </summary>
-        public void UninitializeAudio()
-        {
-            if (null != _audioEndpointVolume)  _audioEndpointVolume.UnregisterControlChangeNotify(classCallBack);
-            if (null != _audioClient) _audioClient.Stop();
-            if (null != _audioMeter)
-            {
-                //For wait audio meter thread stop. then release memory
-                Thread.Sleep(100);
-                Marshal.ReleaseComObject(_audioMeter);
-                _audioMeter = null;
-            }
-            if (null != _audioClient)
-            {
-                Marshal.ReleaseComObject(_audioClient);
-                _audioClient = null;
-            }
-            if (null != _audioEndpointVolume)
-            {
-                Marshal.ReleaseComObject(_audioEndpointVolume);
-                _audioEndpointVolume = null;
-            }
-            if (null != _audioDevice)
-            {
-                Marshal.ReleaseComObject(_audioDevice);
-                _audioDevice = null;
-            }
-            if (null != waveFormat)
-            {
-                waveFormat = null;
-            }
-            if (null != _audioSessionEventDict)
-            {
-                foreach (var ctl in _audioSessionEventDict)
-                {
-                    ctl.Key.UnregisterAudioSessionNotification(ctl.Value.AudioSessionEventClass);
-                    Marshal.ReleaseComObject(ctl.Key);
-                }
-            }
-
-            if (null != _audioSessionManager2)
-            {
-                Marshal.ReleaseComObject(_audioSessionManager2);
-            }
-            GC.SuppressFinalize(this);
         }
 
         /// <summary>
@@ -239,7 +109,34 @@ namespace CoreAudioLib
             }
         }
 
-     
+        public override void UninitializeAudio()
+        {
+            if (null != _audioEndpointVolume) _audioEndpointVolume.UnregisterControlChangeNotify(classCallBack);
+            if (null != _audioClient) _audioClient.Stop();
+            if (null != _audioMeter)
+            {
+                //For wait audio meter thread stop. then release memory
+                Thread.Sleep(100);
+                Marshal.ReleaseComObject(_audioMeter);
+                _audioMeter = null;
+            }
+            if (null != _audioClient)
+            {
+                Marshal.ReleaseComObject(_audioClient);
+                _audioClient = null;
+            }
+            if (null != _audioEndpointVolume)
+            {
+                Marshal.ReleaseComObject(_audioEndpointVolume);
+                _audioEndpointVolume = null;
+            }
+            if (null != waveFormat)
+            {
+                waveFormat = null;
+            }
+            base.UninitializeAudio();
+        }
+
 
         /// <summary>
         /// The start monitor

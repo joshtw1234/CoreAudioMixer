@@ -61,6 +61,8 @@
   <ItemGroup>
     <Compile Include="AudioControl.cs" />
     <Compile Include="AudioDeviceController.cs" />
+    <Compile Include="AudioSessionControl.cs" />
+    <Compile Include="BaseAudioControl.cs" />
     <Compile Include="CallBacks\AudioCallBacks.cs" />
     <Compile Include="Enums\AudioClientBufferFlags.cs" />
     <Compile Include="Enums\AudioClientMode.cs" />
