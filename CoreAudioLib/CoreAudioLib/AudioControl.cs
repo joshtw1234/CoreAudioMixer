@@ -44,7 +44,7 @@ namespace CoreAudioLib
         IAudioMeterInformation _audioMeter;
         AudioDataFlow _audioDataFlow;
         IAudioEndpointVolume _audioEndpointVolume;
-        //IAudioSessionControl2 _audioSessionControl2;
+        IAudioSessionControl _audioSessionControl;
         IAudioSessionManager2 _audioSessionManager2;
         Dictionary<IAudioSessionControl, JoshAudioSessionStruct> _audioSessionEventDict;
         ClassAudioEndPointVolumeCallBack classCallBack;
@@ -100,6 +100,8 @@ namespace CoreAudioLib
              * like _audioEndpointVolume.QueryHardwareSupport(out uint mask);
              */
             InitializeAudioClient();
+
+            if (_audioDataFlow == AudioDataFlow.eCapture) return;
             
             //Get Session manager
             result = _audioDevice.Activate(typeof(IAudioSessionManager2).GUID, ClsCtx.ALL, IntPtr.Zero, out obj);
@@ -167,8 +169,8 @@ namespace CoreAudioLib
             result = _audioEndpointVolume.GetChannelCount(out _channelCount);
             //_audioClient.GetService(typeof(IAudioSessionControl).GUID, out object sessionObj);
             //_audioSessionControl = (IAudioSessionControl)sessionObj;
-            //int rev = _audioSessionControl.GetDisplayName(out string displayName);
-            //rev = _audioSessionControl.RegisterAudioSessionNotification(_audioSessionEvent = new AudioSessionEvents());
+            //var rev = _audioSessionControl.GetDisplayName(out string displayName);
+            //rev = _audioSessionControl.RegisterAudioSessionNotification(new AudioSessionEvents());
         }
 
 

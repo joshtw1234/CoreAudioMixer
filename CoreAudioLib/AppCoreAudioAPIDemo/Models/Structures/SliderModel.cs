@@ -2,16 +2,22 @@
 
 namespace AppCoreAudioAPIDemo.Models.Structures
 {
-    class SliderModel : INotifyPropertyChanged
+    class NotifyBase : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
-        private void OnPropertyRaised(string propertyname)
+        protected void OnPropertyRaised(string propertyname)
         {
             if (PropertyChanged != null)
             {
                 PropertyChanged(this, new PropertyChangedEventArgs(propertyname));
             }
         }
+    }
+
+    public delegate void SliderValueChangeCallBack(CoreAudioLib.Enums.AudioDataFlow audioFlow, double oldV, double newV);
+    class SliderModel : NotifyBase
+    {
+        public CoreAudioLib.Enums.AudioDataFlow AudioFLow { get; set; }
         /// <summary>
         /// The Max value
         /// </summary>
@@ -39,9 +45,21 @@ namespace AppCoreAudioAPIDemo.Models.Structures
             }
             set
             {
+
+                if (null == _sliderValue)
+                {
+                    _sliderValue = value;
+                }
+                else
+                {
+                    if (_sliderValue.Equals(value)) return;
+                }
+
+                OnSliderValueChange?.Invoke(AudioFLow, double.Parse(_sliderValue),double.Parse(value));
                 _sliderValue = value;
                 OnPropertyRaised("SliderValue");
             }
         }
+        public SliderValueChangeCallBack OnSliderValueChange { get; set; }
     }
 }
