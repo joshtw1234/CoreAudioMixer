@@ -14,10 +14,10 @@ namespace AppCoreAudioAPIDemo.Models.Structures
         }
     }
 
-    public delegate void SliderValueChangeCallBack(CoreAudioLib.Enums.AudioDataFlow audioFlow, double oldV, double newV);
-    class SliderModel : NotifyBase
+    public delegate void SliderValueChangeCallBack(int sessionOrFlow, double oldV, double newV);
+
+    abstract class BaseSliderModel : NotifyBase
     {
-        public CoreAudioLib.Enums.AudioDataFlow AudioFLow { get; set; }
         /// <summary>
         /// The Max value
         /// </summary>
@@ -33,11 +33,11 @@ namespace AppCoreAudioAPIDemo.Models.Structures
         /// <summary>
         /// The Slider value
         /// </summary>
-        private string _sliderValue;
+        protected string _sliderValue;
         /// <summary>
         /// Get or Set Slider value
         /// </summary>
-        public string SliderValue
+        public virtual string SliderValue
         {
             get
             {
@@ -45,21 +45,46 @@ namespace AppCoreAudioAPIDemo.Models.Structures
             }
             set
             {
-
-                if (null == _sliderValue)
-                {
-                    _sliderValue = value;
-                }
-                else
+                if (null != _sliderValue)
                 {
                     if (_sliderValue.Equals(value)) return;
                 }
-
-                OnSliderValueChange?.Invoke(AudioFLow, double.Parse(_sliderValue),double.Parse(value));
                 _sliderValue = value;
                 OnPropertyRaised("SliderValue");
             }
         }
         public SliderValueChangeCallBack OnSliderValueChange { get; set; }
+    }
+    class SliderModel : BaseSliderModel
+    {
+        public CoreAudioLib.Enums.AudioDataFlow AudioFLow { get; set; }
+        public override string SliderValue
+        {
+            get => base.SliderValue;
+            set
+            {
+                if (null != _sliderValue)
+                {
+                    OnSliderValueChange?.Invoke((int)AudioFLow, double.Parse(_sliderValue), double.Parse(value));
+                }
+                base.SliderValue = value;
+            }
+        }
+    }
+    class SessionSliderModel : BaseSliderModel
+    {
+        public uint SessionPid { get; set; }
+        public override string SliderValue
+        {
+            get => base.SliderValue;
+            set
+            {
+                if (null != _sliderValue)
+                {
+                    OnSliderValueChange?.Invoke((int)SessionPid, double.Parse(_sliderValue), double.Parse(value));
+                }
+                base.SliderValue = value;
+            }
+        }
     }
 }

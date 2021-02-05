@@ -55,6 +55,7 @@ namespace CoreAudioLib.NativeCore
 
         public COMResult OnSimpleVolumeChanged([In, MarshalAs(UnmanagedType.R4)] float volume, [In, MarshalAs(UnmanagedType.Bool)] bool isMuted, [In] ref Guid eventContext)
         {
+            _volumeCallBack?.Invoke(ProcessID, volume, isMuted);
             return COMResult.S_OK;
         }
 

@@ -54,7 +54,7 @@ namespace AppCoreAudioAPIDemo.Models.Structures
                 OnPropertyRaised("ButtonContent");
             }
         }
-        public SliderModel AudioSlider { get; set; }
+        public BaseSliderModel AudioSlider { get; set; }
         
 
     }

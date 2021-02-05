@@ -3,6 +3,7 @@ using CoreAudioLib.Enums;
 using CoreAudioLib.NativeCore;
 using CoreAudioLib.Structures;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
@@ -62,19 +63,26 @@ namespace AppCoreAudioAPIDemo.Models
         }
 
 
-        private void OnSliderValueChanged(AudioDataFlow audioFlow, double oldV, double newV)
+        private void OnSliderValueChanged(int audioFlow, double oldV, double newV)
         {
             var setValue = newV / AppCoreAudioConstants.VALUE_MAX;
-            switch(audioFlow)
+            if (audioFlow < 10)
             {
-                case AudioDataFlow.eRender:
-                    _audioDevice.SetSpeakerVolumeValue(setValue);
-                    break;
-                case AudioDataFlow.eCapture:
-                    _audioDevice.SetMicrophoneVolumeValue(setValue);
-                    break;
-                default:
-                    break;
+                switch ((AudioDataFlow)audioFlow)
+                {
+                    case AudioDataFlow.eRender:
+                        _audioDevice.SetSpeakerVolumeValue(setValue);
+                        break;
+                    case AudioDataFlow.eCapture:
+                        _audioDevice.SetMicrophoneVolumeValue(setValue);
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else
+            {
+
             }
         }
         #endregion
@@ -109,19 +117,40 @@ namespace AppCoreAudioAPIDemo.Models
                         Step = "1",
                         OnSliderValueChange = OnSliderValueChanged
                     }
-                    
                 },
             };
         }
 
-
+        //List<CoreAudioLib.AudioSessionDataStruct> SessionList;
         public ObservableCollection<ModelAudioSlider> GetAudioSessionCollection()
         {
-            return _audioSessionCollection = new ObservableCollection<ModelAudioSlider>()
+            _audioSessionCollection = new ObservableCollection<ModelAudioSlider>();
+            var SessionList = _audioDevice.GetAudioSessionsPid();
+            foreach(var sess in SessionList)
             {
-                new ModelAudioSlider(){ ImageSource = AppCoreAudioConstants.IMG_HEADPHONE, ButtonContent = AppCoreAudioConstants.IMG_HEADPHONE_MUTE},
-                new ModelAudioSlider(){ ImageSource = AppCoreAudioConstants.IMG_HEADPHONE, ButtonContent = AppCoreAudioConstants.IMG_HEADPHONE_MUTE}
-            };
+                var mmm = new ModelAudioSlider()
+                {
+                    ImageSource = AppCoreAudioConstants.IMG_HEADPHONE,
+                    ButtonContent = AppCoreAudioConstants.IMG_HEADPHONE_MUTE,
+                    AudioSlider = new SessionSliderModel()
+                    {
+                        SessionPid = sess.SeesionPid,
+                        MaxValue = "100",
+                        MinValue = "0",
+                        SliderValue = Math.Ceiling(_audioDevice.GetSessionVolume(sess.SeesionPid) * AppCoreAudioConstants.VALUE_MAX).ToString(),
+                        Step = "1",
+                        OnSliderValueChange = OnSliderValueChanged
+                    }
+                };
+                sess.SessionVolumeChangeCallBack = OnSessionVolumeChangeCallBack;
+                _audioSessionCollection.Add(mmm);
+            }
+            return _audioSessionCollection;
+        }
+
+        private void OnSessionVolumeChangeCallBack(uint spid, float volume, bool isMute)
+        {
+
         }
     }
 }
