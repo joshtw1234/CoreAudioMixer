@@ -2,6 +2,7 @@
 using CoreAudioLib.NativeCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace CoreAudioLib
@@ -11,8 +12,11 @@ namespace CoreAudioLib
         IAudioSessionManager2 _audioSessionManager2;
         Dictionary<IAudioSessionControl, JoshAudioSessionStruct> _audioSessionEventDict;
 
+        public List<AudioSessionDataStruct> AudioSessionsPid { get; private set; }
+
         public AudioSessionControl(IMMDevice audioDevice, AudioDataFlow audioFlow) : base(audioDevice, audioFlow)
         {
+            AudioSessionsPid = new List<AudioSessionDataStruct>();
             InitializeAudioSessions();
         }
 
@@ -35,6 +39,7 @@ namespace CoreAudioLib
             // search for an audio session with the required process-id
             JoshAudioSessionStruct audioStruc;
             AudioSessionEvents ssEvent = null;
+
             for (int i = 0; i < count; ++i)
             {
                 IAudioSessionControl ctl = null;
@@ -48,10 +53,10 @@ namespace CoreAudioLib
                 // NOTE: we could also use the app name from ctl.GetDisplayName()
                 revv = ctl2.GetProcessId(out uint cpid);
                 ssEvent.ProcessID = cpid;
-
+                AudioSessionsPid.Add(new AudioSessionDataStruct() { SeesionPid = cpid });
                 var pos = System.Diagnostics.Process.GetProcessById((int)cpid);
                 ssEvent.DisplayName = pos.ProcessName;
-
+                ssEvent.RegisterSessionVolumeCallBack(OnSessionChangeCallBack);
                 audioStruc.AudioSessionEventClass = ssEvent;
                 audioStruc.SimpleAudioControl = ctl2 as ISimpleAudioVolume;
                 //revv = ctl2.GetDisplayName(out string names);
@@ -63,6 +68,12 @@ namespace CoreAudioLib
             _audioSessionManager2.RegisterSessionNotification(new AudioSessionNotification());
         }
 
+        private void OnSessionChangeCallBack(uint spid, float volume, bool isMute)
+        {
+            var sControl = AudioSessionsPid.FirstOrDefault(x => x.SeesionPid == spid);
+            sControl.SessionVolumeChangeCallBack?.Invoke(spid, volume, isMute);
+        }
+
         public override void UninitializeAudio()
         {
            
@@ -70,6 +81,7 @@ namespace CoreAudioLib
             {
                 foreach (var ctl in _audioSessionEventDict)
                 {
+                    ctl.Value.AudioSessionEventClass.UnRegisterSessionVolumeCallBack(OnSessionChangeCallBack);
                     ctl.Key.UnregisterAudioSessionNotification(ctl.Value.AudioSessionEventClass);
                     Marshal.ReleaseComObject(ctl.Key);
                 }
@@ -80,6 +92,19 @@ namespace CoreAudioLib
                 Marshal.ReleaseComObject(_audioSessionManager2);
             }
             base.UninitializeAudio();
+        }
+
+        public void SetVolume(uint spid, double value)
+        {
+            var sControl = _audioSessionEventDict.Values.FirstOrDefault(x => x.AudioSessionEventClass.ProcessID == spid);
+            sControl.SimpleAudioControl.SetMasterVolume((float)value, Guid.Empty);
+        }
+
+        public double GetVolume(uint spid)
+        {
+            var sControl = _audioSessionEventDict.Values.FirstOrDefault(x => x.AudioSessionEventClass.ProcessID == spid);
+            sControl.SimpleAudioControl.GetMasterVolume(out float value);
+            return value;
         }
     }
 }

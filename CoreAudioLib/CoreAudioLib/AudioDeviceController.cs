@@ -19,6 +19,7 @@ using System;
 using System.Text.RegularExpressions;
 using System.Linq;
 using CoreAudioLib.NativeCore;
+using System.Collections.Generic;
 
 namespace CoreAudioLib
 {
@@ -55,6 +56,7 @@ namespace CoreAudioLib
         MMNotificationClient _deviceNotification;
         private AudioControl _speakerControl;
         private AudioControl _microphoneControl;
+        private AudioSessionControl _audioSessionControl;
         /// <summary>
         /// The Audio Device State Change Call back
         /// </summary>
@@ -153,7 +155,7 @@ namespace CoreAudioLib
             _deviceChangeCallBack -= callBack;
         }
 
-        #region Audio Control
+        #region Initialize Audio Controls
         /// <summary>
         /// Get HID Audio Device UUID
         /// </summary>
@@ -164,7 +166,7 @@ namespace CoreAudioLib
         private string GetHIDAudioDeviceUUID(AudioDataFlow dataFlow, string pid, string vid)
         {
             COMResult result = COMResult.E_FAIL;
-           
+
             PropertyKey proKey;
             PropVariant proVar;
             result = _deviceEnumerator.EnumAudioEndpoints(dataFlow, AudioDeviceState.DEVICE_STATE_ACTIVE, out IMMDeviceCollection devCollect);
@@ -190,7 +192,7 @@ namespace CoreAudioLib
                             {
                                 continue;
                             }
-                            if (vid.Equals(hwVid, StringComparison.CurrentCultureIgnoreCase) && 
+                            if (vid.Equals(hwVid, StringComparison.CurrentCultureIgnoreCase) &&
                                 pid.Equals(hwPid, StringComparison.CurrentCultureIgnoreCase))
                             {
                                 return devID;
@@ -276,6 +278,7 @@ namespace CoreAudioLib
                 case AudioDataFlow.eAll:
                     _audioDevice = GetIMMDevice(AudioDataFlow.eRender, pid, vid);
                     _speakerControl = new AudioControl(_audioDevice, AudioDataFlow.eRender);
+                    _audioSessionControl = new AudioSessionControl(_audioDevice, AudioDataFlow.eRender);
                     _audioDevice = GetIMMDevice(AudioDataFlow.eCapture, pid, vid);
                     _microphoneControl = new AudioControl(_audioDevice, AudioDataFlow.eCapture);
                     break;
@@ -304,7 +307,16 @@ namespace CoreAudioLib
                 _microphoneControl.UninitializeAudio();
                 _microphoneControl = null;
             }
+            if (null != _audioSessionControl)
+            {
+                _audioSessionControl.UninitializeAudio();
+                _audioSessionControl = null;
+            }
         }
+        #endregion
+
+        #region Audio Control
+
         /// <summary>
         /// The Get Speaker Muted
         /// </summary>
@@ -500,5 +512,28 @@ namespace CoreAudioLib
         }
         #endregion
         #endregion
+
+        #region Audio Session Control
+        public List<AudioSessionDataStruct> GetAudioSessionsPid()
+        {
+            return _audioSessionControl.AudioSessionsPid;
+        }
+
+        public double GetSessionVolume(uint spid)
+        {
+            return _audioSessionControl.GetVolume(spid);
+        }
+
+        public void SetSessionVolume(uint spid, double value)
+        {
+            _audioSessionControl.SetVolume(spid, value);
+        }
+        #endregion
+    }
+
+    public class AudioSessionDataStruct
+    {
+        public uint SeesionPid { get; set; }
+        public CallBacks.AudioSessionVolumeChangeCallBack SessionVolumeChangeCallBack { get; set; }
     }
 }
