@@ -152,6 +152,7 @@ namespace CoreAudioLib
         {
             _deviceChangeCallBack -= callBack;
         }
+
         #region Audio Control
         /// <summary>
         /// Get HID Audio Device UUID
