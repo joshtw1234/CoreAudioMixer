@@ -45,10 +45,6 @@ namespace AppCoreAudioAPIDemo.Models.Structures
             }
             set
             {
-                if (null != _sliderValue)
-                {
-                    if (_sliderValue.Equals(value)) return;
-                }
                 _sliderValue = value;
                 OnPropertyRaised("SliderValue");
             }
@@ -65,8 +61,9 @@ namespace AppCoreAudioAPIDemo.Models.Structures
             {
                 if (null != _sliderValue)
                 {
-                    OnSliderValueChange?.Invoke((int)AudioFLow, double.Parse(_sliderValue), double.Parse(value));
+                    if (_sliderValue.Equals(value)) return;
                 }
+                OnSliderValueChange?.Invoke((int)AudioFLow, double.Parse(_sliderValue), double.Parse(value));
                 base.SliderValue = value;
             }
         }
@@ -81,8 +78,9 @@ namespace AppCoreAudioAPIDemo.Models.Structures
             {
                 if (null != _sliderValue)
                 {
-                    OnSliderValueChange?.Invoke((int)SessionPid, double.Parse(_sliderValue), double.Parse(value));
+                    if (_sliderValue.Equals(value)) return;
                 }
+                OnSliderValueChange?.Invoke((int)SessionPid, double.Parse(_sliderValue), double.Parse(value));
                 base.SliderValue = value;
             }
         }

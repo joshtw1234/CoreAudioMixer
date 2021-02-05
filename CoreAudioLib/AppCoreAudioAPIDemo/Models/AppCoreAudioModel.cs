@@ -82,7 +82,7 @@ namespace AppCoreAudioAPIDemo.Models
             }
             else
             {
-
+                _audioDevice.SetSessionVolume((uint)audioFlow, setValue);
             }
         }
         #endregion
@@ -121,7 +121,6 @@ namespace AppCoreAudioAPIDemo.Models
             };
         }
 
-        //List<CoreAudioLib.AudioSessionDataStruct> SessionList;
         public ObservableCollection<ModelAudioSlider> GetAudioSessionCollection()
         {
             _audioSessionCollection = new ObservableCollection<ModelAudioSlider>();
@@ -150,7 +149,8 @@ namespace AppCoreAudioAPIDemo.Models
 
         private void OnSessionVolumeChangeCallBack(uint spid, float volume, bool isMute)
         {
-
+            var sControl = _audioSessionCollection.FirstOrDefault(x => (x.AudioSlider as SessionSliderModel).SessionPid == spid);
+            sControl.AudioSlider.SliderValue = Math.Ceiling(volume * AppCoreAudioConstants.VALUE_MAX).ToString();
         }
     }
 }
