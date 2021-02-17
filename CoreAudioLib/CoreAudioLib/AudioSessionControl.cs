@@ -39,30 +39,54 @@ namespace CoreAudioLib
             // search for an audio session with the required process-id
             JoshAudioSessionStruct audioStruc;
             AudioSessionEvents ssEvent = null;
-
+            string iconSaveDir = $@"C:\Users\JoshOMEN\Documents\";
+            string[] fileEntries = System.IO.Directory.GetFiles(iconSaveDir);
+            foreach (var iconStr in fileEntries)
+            {
+                if (iconStr.Contains("ico"))
+                {
+                    System.IO.File.Delete(iconStr);
+                }
+            }
             for (int i = 0; i < count; ++i)
             {
-                IAudioSessionControl ctl = null;
-                IAudioSessionControl2 ctl2 = null;
+                try
+                {
+                    IAudioSessionControl ctl = null;
+                    IAudioSessionControl2 ctl2 = null;
 
-                var revv = sessionEnumerator.GetSession(i, out ctl);
-                ssEvent = new AudioSessionEvents();
-                audioStruc = new JoshAudioSessionStruct();
-                revv = ctl.RegisterAudioSessionNotification(ssEvent);
-                ctl2 = ctl as IAudioSessionControl2;
-                // NOTE: we could also use the app name from ctl.GetDisplayName()
-                revv = ctl2.GetProcessId(out uint cpid);
-                ssEvent.ProcessID = cpid;
-                AudioSessionsPid.Add(new AudioSessionDataStruct() { SeesionPid = cpid });
-                var pos = System.Diagnostics.Process.GetProcessById((int)cpid);
-                ssEvent.DisplayName = pos.ProcessName;
-                ssEvent.RegisterSessionVolumeCallBack(OnSessionChangeCallBack);
-                audioStruc.AudioSessionEventClass = ssEvent;
-                audioStruc.SimpleAudioControl = ctl2 as ISimpleAudioVolume;
-                //revv = ctl2.GetDisplayName(out string names);
-                //Keep session in memory for opreation it later
-                _audioSessionEventDict.Add(ctl, audioStruc);
+                    var revv = sessionEnumerator.GetSession(i, out ctl);
+                    ssEvent = new AudioSessionEvents();
+                    audioStruc = new JoshAudioSessionStruct();
+                    revv = ctl.RegisterAudioSessionNotification(ssEvent);
+                    ctl2 = ctl as IAudioSessionControl2;
+                    // NOTE: we could also use the app name from ctl.GetDisplayName()
+                    revv = ctl2.GetProcessId(out uint cpid);
+                    ssEvent.ProcessID = cpid;
 
+                    var pos = System.Diagnostics.Process.GetProcessById((int)cpid);
+                    ssEvent.DisplayName = pos.ProcessName;
+                    string fullPath = pos.MainModule.FileName;
+                    var icon = System.Drawing.Icon.ExtractAssociatedIcon(fullPath);
+                    string iconSavedPath = $"{iconSaveDir}{ssEvent.DisplayName}.ico";
+                    // Save it to disk, or do whatever you want with it.
+                    using (var stream = new System.IO.FileStream(iconSavedPath, System.IO.FileMode.CreateNew))
+                    {
+                        icon.Save(stream);
+                    }
+                    ssEvent.RegisterSessionVolumeCallBack(OnSessionChangeCallBack);
+                    AudioSessionsPid.Add(new AudioSessionDataStruct() { SeesionPid = cpid, SessionIconPath = iconSavedPath });
+
+                    audioStruc.AudioSessionEventClass = ssEvent;
+                    audioStruc.SimpleAudioControl = ctl2 as ISimpleAudioVolume;
+                    //revv = ctl2.GetDisplayName(out string names);
+                    //Keep session in memory for opreation it later
+                    _audioSessionEventDict.Add(ctl, audioStruc);
+                }
+                catch(Exception ex)
+                {
+
+                }
             }
             //Register event for get session creation
             _audioSessionManager2.RegisterSessionNotification(new AudioSessionNotification());

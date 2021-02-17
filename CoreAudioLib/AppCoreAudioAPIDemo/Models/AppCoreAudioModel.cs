@@ -129,7 +129,7 @@ namespace AppCoreAudioAPIDemo.Models
             {
                 var mmm = new ModelAudioSlider()
                 {
-                    ImageSource = AppCoreAudioConstants.IMG_HEADPHONE,
+                    ImageSource = sess.SessionIconPath,
                     ButtonContent = AppCoreAudioConstants.IMG_HEADPHONE_MUTE,
                     AudioSlider = new SessionSliderModel()
                     {
