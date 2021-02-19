@@ -130,5 +130,17 @@ namespace CoreAudioLib
             sControl.SimpleAudioControl.GetMasterVolume(out float value);
             return value;
         }
+
+        public void SetMuted(uint spid, bool isMuted)
+        {
+            var sControl = _audioSessionEventDict.Values.FirstOrDefault(x => x.AudioSessionEventClass.ProcessID == spid);
+            sControl.SimpleAudioControl.SetMute(isMuted, Guid.Empty);
+        }
+        public bool GetIsMuted(uint spid)
+        {
+            var sControl = _audioSessionEventDict.Values.FirstOrDefault(x => x.AudioSessionEventClass.ProcessID == spid);
+            sControl.SimpleAudioControl.GetMute(out bool isMuted);
+            return isMuted;
+        }
     }
 }

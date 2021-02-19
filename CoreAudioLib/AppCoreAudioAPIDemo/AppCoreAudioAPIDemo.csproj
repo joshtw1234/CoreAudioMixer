@@ -90,6 +90,7 @@
     <Compile Include="Models\AppCoreAudioConstants.cs" />
     <Compile Include="Models\AppCoreAudioModel.cs" />
     <Compile Include="Models\IAppCoreAudioModel.cs" />
+    <Compile Include="Models\Structures\ButtonCommandHandler.cs" />
     <Compile Include="Models\Structures\ModelAudioSlider.cs" />
     <Compile Include="Models\Structures\SliderModel.cs" />
     <Compile Include="ViewModels\MainWindowViewModel.cs" />

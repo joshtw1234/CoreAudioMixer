@@ -9,10 +9,8 @@
 
     <DataTemplate x:Key="AudioSliderBarTemplate">
         <DockPanel Margin="10, 0, 10, 0">
-            <Image DockPanel.Dock="Top" Source="{Binding ImageSource}" Height="50"/>
-            <ToggleButton DockPanel.Dock="Bottom" Height="50">
-                <Image Source="{Binding ButtonContent}"/>
-            </ToggleButton>
+            <Image DockPanel.Dock="Top" Source="{Binding MenuImage}" Height="50"/>
+            <ToggleButton DockPanel.Dock="Bottom" Height="50" DataContext="{Binding ButtonContent}" Style="{StaticResource SliderBottomButtonStyle}"/>
             <Slider Orientation="Vertical" HorizontalAlignment="Center" DataContext="{Binding AudioSlider}" Style="{StaticResource CustomAudioSlider}"/>
         </DockPanel>
     </DataTemplate>

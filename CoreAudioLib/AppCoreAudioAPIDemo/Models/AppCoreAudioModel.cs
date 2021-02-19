@@ -52,14 +52,26 @@ namespace AppCoreAudioAPIDemo.Models
             }
         }
 
+        private string GetMutedImage(bool isMuted)
+        {
+            string spMuteImg = AppCoreAudioConstants.IMG_HEADPHONE_MUTE;
+            if (!isMuted)
+            {
+                spMuteImg = AppCoreAudioConstants.IMG_HEADPHONE;
+            }
+            return spMuteImg;
+        }
+
         private void OnDeviceMicVolumeCallBack(AudioVolumeNotificationData cData)
         {
             _audioDeviceCollection[1].AudioSlider.SliderValue = Math.Ceiling(cData.MasterVolume * AppCoreAudioConstants.VALUE_MAX).ToString();
+            _audioDeviceCollection[1].ButtonContent.MenuImage = GetMutedImage(cData.Muted);
         }
 
         private void OnDeviceSpeakerVolumeCallBack(AudioVolumeNotificationData cData)
         {
             _audioDeviceCollection.First().AudioSlider.SliderValue = Math.Ceiling(cData.MasterVolume * AppCoreAudioConstants.VALUE_MAX).ToString();
+            _audioDeviceCollection.First().ButtonContent.MenuImage = GetMutedImage(cData.Muted);
         }
 
 
@@ -92,8 +104,13 @@ namespace AppCoreAudioAPIDemo.Models
             return _audioDeviceCollection = new ObservableCollection<ModelAudioSlider>()
             {
                 new ModelAudioSlider(){
-                    ImageSource = AppCoreAudioConstants.IMG_HEADPHONE,
-                    ButtonContent = AppCoreAudioConstants.IMG_HEADPHONE_MUTE,
+                    MenuImage = AppCoreAudioConstants.IMG_HEADPHONE,
+                    ButtonContent = new ButtonMenuItem()
+                    {
+                        MenuImage = GetMutedImage(_audioDevice.GetSpeakerIsMuted()),
+                        MenuCommand = new ButtonCommandHandler(OnButtonClick, true),
+                        MenuData = "Josh"
+                    },
                     AudioSlider = new SliderModel()
                     {
                         AudioFLow = AudioDataFlow.eRender,
@@ -106,8 +123,13 @@ namespace AppCoreAudioAPIDemo.Models
                     
                 },
                 new ModelAudioSlider(){
-                    ImageSource = AppCoreAudioConstants.IMG_HEADPHONE,
-                    ButtonContent = AppCoreAudioConstants.IMG_HEADPHONE_MUTE,
+                    MenuImage = AppCoreAudioConstants.IMG_HEADPHONE,
+                    ButtonContent = new ButtonMenuItem()
+                    {
+                        MenuImage = GetMutedImage(_audioDevice.GetMicrophoneIsMuted()),
+                        MenuCommand = new ButtonCommandHandler(OnButtonClick, true),
+                        MenuData = "Josh"
+                    },
                     AudioSlider = new SliderModel()
                     {
                         AudioFLow = AudioDataFlow.eCapture,
@@ -121,6 +143,11 @@ namespace AppCoreAudioAPIDemo.Models
             };
         }
 
+        private void OnButtonClick(object obj)
+        {
+            //throw new NotImplementedException();
+        }
+
         public ObservableCollection<ModelAudioSlider> GetAudioSessionCollection()
         {
             _audioSessionCollection = new ObservableCollection<ModelAudioSlider>();
@@ -129,8 +156,13 @@ namespace AppCoreAudioAPIDemo.Models
             {
                 var mmm = new ModelAudioSlider()
                 {
-                    ImageSource = sess.SessionIconPath,
-                    ButtonContent = AppCoreAudioConstants.IMG_HEADPHONE_MUTE,
+                    MenuImage = sess.SessionIconPath,
+                    ButtonContent = new ButtonMenuItem()
+                    {
+                        MenuImage = AppCoreAudioConstants.IMG_HEADPHONE_MUTE,
+                        MenuCommand = new ButtonCommandHandler(OnButtonClick, true),
+                        MenuData = "Josh"
+                    },
                     AudioSlider = new SessionSliderModel()
                     {
                         SessionPid = sess.SeesionPid,

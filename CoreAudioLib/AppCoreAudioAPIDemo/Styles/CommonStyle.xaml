@@ -709,4 +709,20 @@
         </Style.Triggers>
     </Style>
     <!--#endregion-->
+
+    <Style x:Key="SliderBottomButtonStyle" TargetType="{x:Type ToggleButton}">
+        <Setter Property="MaxHeight" Value="30"/>
+        <Setter Property="MaxWidth" Value="30"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="Command" Value="{Binding MenuCommand}"/>
+        <Setter Property="CommandParameter" Value="{Binding MenuData}"/>
+        <!--<Setter Property="Visibility" Value="{Binding MenuVisibility, Converter={StaticResource BoolToVisibilityConverter}}"/>-->
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Image Source="{Binding MenuImage}"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 </ResourceDictionary>

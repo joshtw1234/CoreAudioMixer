@@ -3,59 +3,30 @@ using System.Windows.Input;
 
 namespace AppCoreAudioAPIDemo.Models.Structures
 {
-    class CommandBase : ICommand
+    class MenuItem : NotifyBase
     {
-        private Action<object> command;
-        private Func<bool> canExecute;
-
-        public CommandBase(Action<object> commandAction, Func<bool> canExecute = null)
+        public ButtonCommandHandler MenuCommand { get; set; }
+        public virtual string MenuData { get; set; }
+        public virtual bool MenuVisibility { get; set; }
+        public virtual string MenuImage { get; set; }
+    }
+    class ButtonMenuItem : MenuItem
+    {
+        private string _menuImage;
+        public override string MenuImage
         {
-            this.command = commandAction;
-            this.canExecute = canExecute;
-        }
-
-        /// <summary>
-        /// Returns default true. 
-        /// Customize to implement can execute logic.
-        /// </summary>
-        public bool CanExecute(object parameter)
-        {
-            return this.canExecute == null ? true : this.canExecute();
-        }
-
-        /// <summary>
-        /// Implement changed logic if needed
-        /// </summary>
-        public event EventHandler CanExecuteChanged;
-
-
-        public void Execute(object parameter)
-        {
-            if (this.command != null)
+            get => _menuImage;
+            set
             {
-                this.command(parameter);
+                _menuImage = value;
+                OnPropertyRaised("MenuImage");
             }
         }
     }
-    class ModelAudioSlider : NotifyBase
+    class ModelAudioSlider : MenuItem
     {
-        
-        public string ImageSource { get; set; }
-        private string _buttonContent;
-        public string ButtonContent
-        {
-            get
-            {
-                return _buttonContent;
-            }
-            set
-            {
-                _buttonContent = value;
-                OnPropertyRaised("ButtonContent");
-            }
-        }
-        public BaseSliderModel AudioSlider { get; set; }
-        
+        public MenuItem ButtonContent { get; set; }
 
+        public BaseSliderModel AudioSlider { get; set; }
     }
 }
