@@ -30,6 +30,7 @@ namespace AppCoreAudioAPIDemo.Models.Structures
         /// The Step
         /// </summary>
         public string Step { get; set; }
+        
         /// <summary>
         /// The Slider value
         /// </summary>

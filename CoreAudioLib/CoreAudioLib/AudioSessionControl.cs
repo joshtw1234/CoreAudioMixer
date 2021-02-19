@@ -17,9 +17,10 @@ namespace CoreAudioLib
         public AudioSessionControl(IMMDevice audioDevice, AudioDataFlow audioFlow) : base(audioDevice, audioFlow)
         {
             AudioSessionsPid = new List<AudioSessionDataStruct>();
+            _audioSessionEventDict = new Dictionary<IAudioSessionControl, JoshAudioSessionStruct>();
             InitializeAudioSessions();
         }
-
+        AudioSessionNotification sessionNotify;
         void InitializeAudioSessions()
         {
             if (_audioDataFlow == AudioDataFlow.eCapture) return;
@@ -27,15 +28,22 @@ namespace CoreAudioLib
             //Get Session manager
             var result = _audioDevice.Activate(typeof(IAudioSessionManager2).GUID, ClsCtx.ALL, IntPtr.Zero, out object obj);
             _audioSessionManager2 = (IAudioSessionManager2)obj;
+            //Register event for get session creation
+            sessionNotify = new AudioSessionNotification();
+            _audioSessionManager2.RegisterSessionNotification(sessionNotify);
+            InitializeAudioSessionDict();
+        }
 
-            _audioSessionEventDict = new Dictionary<IAudioSessionControl, JoshAudioSessionStruct>();
+        public void InitializeAudioSessionDict()
+        {
+            _audioSessionEventDict.Clear();
+            AudioSessionsPid.Clear();
+
             //Get all session process IDs
             //refer https://gist.github.com/sverrirs/d099b34b7f72bb4fb386
             // enumerate sessions for on this device
             _audioSessionManager2.GetSessionEnumerator(out IAudioSessionEnumerator sessionEnumerator);
-            int count;
-            sessionEnumerator.GetCount(out count);
-
+            sessionEnumerator.GetCount(out int count);
             // search for an audio session with the required process-id
             JoshAudioSessionStruct audioStruc;
             AudioSessionEvents ssEvent = null;
@@ -84,13 +92,11 @@ namespace CoreAudioLib
                     //Keep session in memory for opreation it later
                     _audioSessionEventDict.Add(ctl, audioStruc);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
 
                 }
             }
-            //Register event for get session creation
-            _audioSessionManager2.RegisterSessionNotification(new AudioSessionNotification());
         }
 
         private void OnSessionChangeCallBack(uint spid, float volume, bool isMute)
@@ -121,6 +127,7 @@ namespace CoreAudioLib
 
             if (null != _audioSessionManager2)
             {
+                _audioSessionManager2.UnregisterSessionNotification(sessionNotify);
                 Marshal.ReleaseComObject(_audioSessionManager2);
             }
             base.UninitializeAudio();

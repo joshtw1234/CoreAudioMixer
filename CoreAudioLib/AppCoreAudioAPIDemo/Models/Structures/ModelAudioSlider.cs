@@ -26,6 +26,16 @@ namespace AppCoreAudioAPIDemo.Models.Structures
     }
     class ModelAudioSlider : MenuItem
     {
+        private bool _menuVisibility;
+        public override bool MenuVisibility
+        {
+            get => _menuVisibility;
+            set
+            {
+                _menuVisibility = value;
+                OnPropertyRaised("MenuVisibility");
+            }
+        }
         public MenuItem ButtonContent { get; set; }
 
         public BaseSliderModel AudioSlider { get; set; }
