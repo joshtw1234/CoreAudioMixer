@@ -177,9 +177,9 @@ namespace AppCoreAudioAPIDemo.Models
                     MenuImage = sess.SessionIconPath,
                     ButtonContent = new ButtonMenuItem()
                     {
-                        MenuImage = AppCoreAudioConstants.IMG_HEADPHONE_MUTE,
-                        //MenuCommand = new ButtonCommandHandler(OnButtonClick, true),
-                        MenuData = "Josh"
+                        MenuImage = GetMutedImage(_audioDevice.GetSessionMuted(sess.SeesionPid)),
+                        MenuCommand = new ButtonCommandHandler(OnSessionButtonClick, true),
+                        MenuData = sess.SeesionPid.ToString()
                     },
                     AudioSlider = new SessionSliderModel()
                     {
@@ -195,6 +195,15 @@ namespace AppCoreAudioAPIDemo.Models
                 _audioSessionCollection.Add(mmm);
             }
             return _audioSessionCollection;
+        }
+
+        private void OnSessionButtonClick(object obj)
+        {
+            int id = Convert.ToInt32(obj);
+            var sControl = _audioSessionCollection.FirstOrDefault(x => (x.AudioSlider as SessionSliderModel).SessionPid == id);
+            bool isMuted = sControl.ButtonContent.MenuImage.Equals(AppCoreAudioConstants.IMG_HEADPHONE);
+            sControl.ButtonContent.MenuImage = GetMutedImage(isMuted);
+            _audioDevice.SetSessionMuted((uint)id, isMuted);
         }
 
         private void OnSessionVolumeChangeCallBack(uint spid, float volume, bool isMute)

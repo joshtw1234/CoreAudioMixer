@@ -528,6 +528,15 @@ namespace CoreAudioLib
         {
             _audioSessionControl.SetVolume(spid, value);
         }
+        public bool GetSessionMuted(uint spid)
+        {
+            return _audioSessionControl.GetIsMuted(spid);
+        }
+
+        public void SetSessionMuted(uint spid, bool value)
+        {
+            _audioSessionControl.SetMuted(spid, value);
+        }
         #endregion
     }
 
