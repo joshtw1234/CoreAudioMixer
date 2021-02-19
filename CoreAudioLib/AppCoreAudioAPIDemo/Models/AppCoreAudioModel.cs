@@ -116,6 +116,7 @@ namespace AppCoreAudioAPIDemo.Models
                     },
                     AudioSlider = new SliderModel()
                     {
+                        MenuEnabled = true,
                         AudioFLow = AudioDataFlow.eRender,
                         MaxValue = "100",
                         MinValue = "0",
@@ -135,6 +136,7 @@ namespace AppCoreAudioAPIDemo.Models
                     },
                     AudioSlider = new SliderModel()
                     {
+                        MenuEnabled = true,
                         AudioFLow = AudioDataFlow.eCapture,
                         MaxValue = "100",
                         MinValue = "0",
@@ -183,6 +185,7 @@ namespace AppCoreAudioAPIDemo.Models
                     },
                     AudioSlider = new SessionSliderModel()
                     {
+                        MenuEnabled = true,
                         SessionPid = sess.SeesionPid,
                         MaxValue = "100",
                         MinValue = "0",
@@ -192,9 +195,28 @@ namespace AppCoreAudioAPIDemo.Models
                     }
                 };
                 sess.SessionVolumeChangeCallBack = OnSessionVolumeChangeCallBack;
+                sess.SessionStateChangeCallBack = OnSessionStateChange;
                 _audioSessionCollection.Add(mmm);
             }
             return _audioSessionCollection;
+        }
+
+        private void OnSessionStateChange(uint spid, int state)
+        {
+            var sControl = _audioSessionCollection.FirstOrDefault(x => (x.AudioSlider as SessionSliderModel).SessionPid == spid);
+            switch(state)
+            {
+                case 0:
+                    sControl.MenuVisibility = false;
+                    break;
+                case 2:
+                     Application.Current.Dispatcher.Invoke(new Action(() => { _audioSessionCollection.Remove(sControl); }), System.Windows.Threading.DispatcherPriority.Normal);
+                    break;
+                case 1:
+                    sControl.MenuVisibility = true;
+                    break;
+            }
+            
         }
 
         private void OnSessionButtonClick(object obj)
@@ -210,6 +232,7 @@ namespace AppCoreAudioAPIDemo.Models
         {
             var sControl = _audioSessionCollection.FirstOrDefault(x => (x.AudioSlider as SessionSliderModel).SessionPid == spid);
             sControl.AudioSlider.SliderValue = Math.Ceiling(volume * AppCoreAudioConstants.VALUE_MAX).ToString();
+            sControl.ButtonContent.MenuImage = GetMutedImage(isMute);
         }
     }
 }

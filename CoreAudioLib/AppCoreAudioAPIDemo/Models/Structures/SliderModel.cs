@@ -16,7 +16,7 @@ namespace AppCoreAudioAPIDemo.Models.Structures
 
     public delegate void SliderValueChangeCallBack(int sessionOrFlow, double oldV, double newV);
 
-    abstract class BaseSliderModel : NotifyBase
+    abstract class BaseSliderModel : MenuItem
     {
         /// <summary>
         /// The Max value

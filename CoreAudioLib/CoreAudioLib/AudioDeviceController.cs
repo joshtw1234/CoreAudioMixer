@@ -545,5 +545,6 @@ namespace CoreAudioLib
         public uint SeesionPid { get; set; }
         public string SessionIconPath { get; set; }
         public CallBacks.AudioSessionVolumeChangeCallBack SessionVolumeChangeCallBack { get; set; }
+        public CallBacks.AudioSessionStateCallBack SessionStateChangeCallBack { get; set; }
     }
 }

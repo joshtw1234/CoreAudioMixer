@@ -15,6 +15,7 @@ namespace CoreAudioLib.NativeCore
         public string DisplayName { get; set; }
 
         CallBacks.AudioSessionVolumeChangeCallBack _volumeCallBack;
+        CallBacks.AudioSessionStateCallBack _stateCallBack;
 
         public void RegisterSessionVolumeCallBack(CallBacks.AudioSessionVolumeChangeCallBack callBack)
         {
@@ -26,6 +27,18 @@ namespace CoreAudioLib.NativeCore
             if (null == _volumeCallBack) return;
 
             _volumeCallBack -= callBack;
+        }
+
+        public void RegisterSessionStateCallBack(CallBacks.AudioSessionStateCallBack callBack)
+        {
+            _stateCallBack += callBack;
+        }
+
+        public void UnRegisterSessionStateCallBack(CallBacks.AudioSessionStateCallBack callBack)
+        {
+            if (null == _volumeCallBack) return;
+
+            _stateCallBack -= callBack;
         }
 
         public COMResult OnChannelVolumeChanged([In, MarshalAs(UnmanagedType.U4)] uint channelCount, [In, MarshalAs(UnmanagedType.SysInt)] IntPtr newVolumes, [In, MarshalAs(UnmanagedType.U4)] uint channelIndex, [In] ref Guid eventContext)
@@ -61,6 +74,7 @@ namespace CoreAudioLib.NativeCore
 
         public COMResult OnStateChanged([In] AudioSessionState state)
         {
+            _stateCallBack?.Invoke(ProcessID, (int)state);
             return COMResult.S_OK;
         }
     }

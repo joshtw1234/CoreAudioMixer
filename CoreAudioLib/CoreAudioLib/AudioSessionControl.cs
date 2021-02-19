@@ -75,6 +75,7 @@ namespace CoreAudioLib
                         icon.Save(stream);
                     }
                     ssEvent.RegisterSessionVolumeCallBack(OnSessionChangeCallBack);
+                    ssEvent.RegisterSessionStateCallBack(OnSessionStateChange);
                     AudioSessionsPid.Add(new AudioSessionDataStruct() { SeesionPid = cpid, SessionIconPath = iconSavedPath });
 
                     audioStruc.AudioSessionEventClass = ssEvent;
@@ -98,6 +99,12 @@ namespace CoreAudioLib
             sControl.SessionVolumeChangeCallBack?.Invoke(spid, volume, isMute);
         }
 
+        private void OnSessionStateChange(uint spid, int state)
+        {
+            var sControl = AudioSessionsPid.FirstOrDefault(x => x.SeesionPid == spid);
+            sControl.SessionStateChangeCallBack?.Invoke(spid, state);
+        }
+
         public override void UninitializeAudio()
         {
            
@@ -106,6 +113,7 @@ namespace CoreAudioLib
                 foreach (var ctl in _audioSessionEventDict)
                 {
                     ctl.Value.AudioSessionEventClass.UnRegisterSessionVolumeCallBack(OnSessionChangeCallBack);
+                    ctl.Value.AudioSessionEventClass.UnRegisterSessionStateCallBack(OnSessionStateChange);
                     ctl.Key.UnregisterAudioSessionNotification(ctl.Value.AudioSessionEventClass);
                     Marshal.ReleaseComObject(ctl.Key);
                 }

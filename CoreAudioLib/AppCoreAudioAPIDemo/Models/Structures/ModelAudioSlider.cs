@@ -6,6 +6,7 @@ namespace AppCoreAudioAPIDemo.Models.Structures
     class MenuItem : NotifyBase
     {
         public ButtonCommandHandler MenuCommand { get; set; }
+        public virtual bool MenuEnabled { get; set; }
         public virtual string MenuData { get; set; }
         public virtual bool MenuVisibility { get; set; }
         public virtual string MenuImage { get; set; }

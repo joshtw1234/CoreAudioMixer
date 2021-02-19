@@ -41,4 +41,5 @@ namespace CoreAudioLib.CallBacks
     public delegate void AudioDeviceStateChangeCallBack(Structures.AudioDeviceChangeData audioDeviceData);
 
     public delegate void AudioSessionVolumeChangeCallBack(uint spid, float volume, bool isMute);
+    public delegate void AudioSessionStateCallBack(uint spid, int state);
 }
