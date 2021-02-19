@@ -98,7 +98,10 @@ namespace AppCoreAudioAPIDemo.Models
             }
         }
         #endregion
-
+        const string SPEAKERNAME = "Speaker";
+        const string MICROPHONENAME = "Mic";
+        private ButtonCommandHandler _btnCommandHandler;
+        private ButtonCommandHandler BtnCommandHandler => _btnCommandHandler ?? new ButtonCommandHandler(OnAudioDeviceButtonClick, true);
         public ObservableCollection<ModelAudioSlider> GetAudioDeviceCollection()
         {
             return _audioDeviceCollection = new ObservableCollection<ModelAudioSlider>()
@@ -108,8 +111,8 @@ namespace AppCoreAudioAPIDemo.Models
                     ButtonContent = new ButtonMenuItem()
                     {
                         MenuImage = GetMutedImage(_audioDevice.GetSpeakerIsMuted()),
-                        MenuCommand = new ButtonCommandHandler(OnButtonClick, true),
-                        MenuData = "Josh"
+                        MenuCommand = BtnCommandHandler,
+                        MenuData = SPEAKERNAME
                     },
                     AudioSlider = new SliderModel()
                     {
@@ -127,8 +130,8 @@ namespace AppCoreAudioAPIDemo.Models
                     ButtonContent = new ButtonMenuItem()
                     {
                         MenuImage = GetMutedImage(_audioDevice.GetMicrophoneIsMuted()),
-                        MenuCommand = new ButtonCommandHandler(OnButtonClick, true),
-                        MenuData = "Josh"
+                        MenuCommand = BtnCommandHandler,
+                        MenuData = MICROPHONENAME
                     },
                     AudioSlider = new SliderModel()
                     {
@@ -143,9 +146,24 @@ namespace AppCoreAudioAPIDemo.Models
             };
         }
 
-        private void OnButtonClick(object obj)
+        private void OnAudioDeviceButtonClick(object obj)
         {
-            //throw new NotImplementedException();
+            var audioObj = _audioDeviceCollection.First();
+            bool isMicrophone = obj.ToString().Equals(MICROPHONENAME);
+            if (isMicrophone)
+            {
+                audioObj = _audioDeviceCollection[1];
+            }
+            bool isMuted = audioObj.ButtonContent.MenuImage.Equals(AppCoreAudioConstants.IMG_HEADPHONE);
+            audioObj.ButtonContent.MenuImage = GetMutedImage(isMuted);
+            if (isMicrophone)
+            {
+                _audioDevice.SetMicrophoneMute(isMuted);
+            }
+            else
+            {
+                _audioDevice.SetSpeakerMute(isMuted);
+            }
         }
 
         public ObservableCollection<ModelAudioSlider> GetAudioSessionCollection()
@@ -160,7 +178,7 @@ namespace AppCoreAudioAPIDemo.Models
                     ButtonContent = new ButtonMenuItem()
                     {
                         MenuImage = AppCoreAudioConstants.IMG_HEADPHONE_MUTE,
-                        MenuCommand = new ButtonCommandHandler(OnButtonClick, true),
+                        //MenuCommand = new ButtonCommandHandler(OnButtonClick, true),
                         MenuData = "Josh"
                     },
                     AudioSlider = new SessionSliderModel()
