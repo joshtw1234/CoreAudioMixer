@@ -33,7 +33,11 @@ namespace CoreAudioLib
             _audioSessionManager2.RegisterSessionNotification(sessionNotify);
             InitializeAudioSessionDict();
         }
-
+        /// <summary>
+        /// refers
+        /// https://docs.microsoft.com/en-us/windows/win32/coreaudio/volume-controls <= windows mixer theory
+        /// https://docs.microsoft.com/en-us/windows/win32/medfound/managing-the-audio-session
+        /// </summary>
         public void InitializeAudioSessionDict()
         {
             _audioSessionEventDict.Clear();

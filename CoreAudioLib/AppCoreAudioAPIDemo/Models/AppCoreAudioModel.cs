@@ -64,13 +64,23 @@ namespace AppCoreAudioAPIDemo.Models
 
         private void OnDeviceMicVolumeCallBack(AudioVolumeNotificationData cData)
         {
-            _audioDeviceCollection[1].AudioSlider.SliderValue = Math.Ceiling(cData.MasterVolume * AppCoreAudioConstants.VALUE_MAX).ToString();
+            var callbackValue = Math.Round(cData.MasterVolume * AppCoreAudioConstants.VALUE_MAX).ToString();
+            if (_audioDeviceCollection[1].AudioSlider.SliderValue.Equals(callbackValue))
+            {
+                return;
+            }
+            _audioDeviceCollection[1].AudioSlider.SliderValue = callbackValue;
             _audioDeviceCollection[1].ButtonContent.MenuImage = GetMutedImage(cData.Muted);
         }
 
         private void OnDeviceSpeakerVolumeCallBack(AudioVolumeNotificationData cData)
         {
-            _audioDeviceCollection.First().AudioSlider.SliderValue = Math.Ceiling(cData.MasterVolume * AppCoreAudioConstants.VALUE_MAX).ToString();
+            var callbackvalue = Math.Round(cData.MasterVolume * AppCoreAudioConstants.VALUE_MAX).ToString();
+            if (_audioDeviceCollection.First().AudioSlider.SliderValue.Equals(callbackvalue))
+            {
+                return;
+            }
+            _audioDeviceCollection.First().AudioSlider.SliderValue = callbackvalue;
             _audioDeviceCollection.First().ButtonContent.MenuImage = GetMutedImage(cData.Muted);
         }
 
@@ -230,8 +240,13 @@ namespace AppCoreAudioAPIDemo.Models
 
         private void OnSessionVolumeChangeCallBack(uint spid, float volume, bool isMute)
         {
+            var valueCallback = Math.Round(volume * AppCoreAudioConstants.VALUE_MAX).ToString();
             var sControl = _audioSessionCollection.FirstOrDefault(x => (x.AudioSlider as SessionSliderModel).SessionPid == spid);
-            sControl.AudioSlider.SliderValue = Math.Ceiling(volume * AppCoreAudioConstants.VALUE_MAX).ToString();
+            if (sControl.AudioSlider.SliderValue.Equals(valueCallback))
+            {
+                return;
+            }
+            sControl.AudioSlider.SliderValue = valueCallback;
             sControl.ButtonContent.MenuImage = GetMutedImage(isMute);
         }
     }
