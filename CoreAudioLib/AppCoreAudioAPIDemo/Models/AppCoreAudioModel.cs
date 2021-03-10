@@ -38,7 +38,7 @@ namespace AppCoreAudioAPIDemo.Models
         }
         private void OnDeviceStateCallBack(AudioDeviceChangeData audioDeviceData)
         {
-            switch(audioDeviceData.DeviceState)
+            switch (audioDeviceData.DeviceState)
             {
                 case AudioDeviceState.DEVICE_STATE_ACTIVE:
                 case AudioDeviceState.DEVICE_STATE_NOTPRESENT:
@@ -82,6 +82,15 @@ namespace AppCoreAudioAPIDemo.Models
             }
             _audioDeviceCollection.First().AudioSlider.SliderValue = callbackvalue;
             _audioDeviceCollection.First().ButtonContent.MenuImage = GetMutedImage(cData.Muted);
+            //Set sessions
+            foreach (var sscontrol in _audioSessionCollection)
+            {
+                var vv = CompareStringValues(_audioDeviceCollection.First().AudioSlider.SliderValue, sscontrol.AudioSlider.SliderValue);
+                if (vv < 0)
+                {
+                    sscontrol.AudioSlider.SliderValue = callbackvalue;
+                }
+            }
         }
 
 
@@ -130,11 +139,11 @@ namespace AppCoreAudioAPIDemo.Models
                         AudioFLow = AudioDataFlow.eRender,
                         MaxValue = "100",
                         MinValue = "0",
-                        SliderValue = Math.Ceiling(_audioDevice.GetSpeakerVolumeValue() * AppCoreAudioConstants.VALUE_MAX).ToString(),
+                        SliderValue = Math.Round(_audioDevice.GetSpeakerVolumeValue() * AppCoreAudioConstants.VALUE_MAX).ToString(),
                         Step = "1",
                         OnSliderValueChange = OnSliderValueChanged
                     }
-                    
+
                 },
                 new ModelAudioSlider(){
                     MenuImage = AppCoreAudioConstants.IMG_HEADPHONE,
@@ -150,7 +159,7 @@ namespace AppCoreAudioAPIDemo.Models
                         AudioFLow = AudioDataFlow.eCapture,
                         MaxValue = "100",
                         MinValue = "0",
-                        SliderValue = Math.Ceiling(_audioDevice.GetMicrophoneVolumeValue() * AppCoreAudioConstants.VALUE_MAX).ToString(),
+                        SliderValue = Math.Round(_audioDevice.GetMicrophoneVolumeValue() * AppCoreAudioConstants.VALUE_MAX).ToString(),
                         Step = "1",
                         OnSliderValueChange = OnSliderValueChanged
                     }
@@ -182,7 +191,7 @@ namespace AppCoreAudioAPIDemo.Models
         {
             _audioSessionCollection = new ObservableCollection<ModelAudioSlider>();
             var SessionList = _audioDevice.GetAudioSessionsPid();
-            foreach(var sess in SessionList)
+            foreach (var sess in SessionList)
             {
                 var mmm = new ModelAudioSlider()
                 {
@@ -199,7 +208,7 @@ namespace AppCoreAudioAPIDemo.Models
                         SessionPid = sess.SeesionPid,
                         MaxValue = "100",
                         MinValue = "0",
-                        SliderValue = Math.Ceiling(_audioDevice.GetSessionVolume(sess.SeesionPid) * AppCoreAudioConstants.VALUE_MAX).ToString(),
+                        SliderValue = Math.Round(_audioDevice.GetSessionVolume(sess.SeesionPid) * AppCoreAudioConstants.VALUE_MAX).ToString(),
                         Step = "1",
                         OnSliderValueChange = OnSliderValueChanged
                     }
@@ -214,19 +223,19 @@ namespace AppCoreAudioAPIDemo.Models
         private void OnSessionStateChange(uint spid, int state)
         {
             var sControl = _audioSessionCollection.FirstOrDefault(x => (x.AudioSlider as SessionSliderModel).SessionPid == spid);
-            switch(state)
+            switch (state)
             {
                 case 0:
                     sControl.MenuVisibility = false;
                     break;
                 case 2:
-                     Application.Current.Dispatcher.Invoke(new Action(() => { _audioSessionCollection.Remove(sControl); }), System.Windows.Threading.DispatcherPriority.Normal);
+                    Application.Current.Dispatcher.Invoke(new Action(() => { _audioSessionCollection.Remove(sControl); }), System.Windows.Threading.DispatcherPriority.Normal);
                     break;
                 case 1:
                     sControl.MenuVisibility = true;
                     break;
             }
-            
+
         }
 
         private void OnSessionButtonClick(object obj)
@@ -248,6 +257,35 @@ namespace AppCoreAudioAPIDemo.Models
             }
             sControl.AudioSlider.SliderValue = valueCallback;
             sControl.ButtonContent.MenuImage = GetMutedImage(isMute);
+            //
+            if (0 > CompareStringValues(_audioDeviceCollection.First().AudioSlider.SliderValue, valueCallback))
+            {
+                //_audioDeviceCollection.First().AudioSlider.SliderValue = valueCallback;
+            }
+        }
+
+        private int CompareStringValues(string aValue, string bValue)
+        {
+            int rev = 0;
+            try
+            {
+                var daValue = double.Parse(aValue);
+                var dbValue = double.Parse(bValue);
+                if (daValue < dbValue)
+                {
+                    rev = -1;
+                }
+                else if (daValue > dbValue)
+                {
+                    rev = 1;
+                }
+            }
+            catch (Exception ex)
+            {
+                //string is not digital
+                return string.Compare(aValue, bValue);
+            }
+            return rev;
         }
     }
 }
